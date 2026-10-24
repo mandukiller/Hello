@@ -91,6 +91,13 @@ passengers:
   adult: 1
 ```
 
+> 💡 이 구간(동탄 → 대전, 2026-10-25 오후 8시 전후)은 바로 쓸 수 있는 프리셋
+> `config.dongtan-daejeon.yaml` 로 저장되어 있습니다. `login.id` 만 채우고
+> 비밀번호는 `.env` 의 `SRT_PW` 에 넣은 뒤 아래처럼 실행하세요:
+> ```bash
+> python main.py -c config.dongtan-daejeon.yaml
+> ```
+
 ## 실행
 
 ```bash

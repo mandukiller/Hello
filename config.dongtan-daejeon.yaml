@@ -1,0 +1,41 @@
+# 동탄 → 대전 SRT 자동 예매 설정 (2026-10-25 오후 8시 전후)
+#
+# 사용법:
+#   1) 아래 login.id 에 본인 SRT 아이디(회원번호/이메일/휴대폰번호)를 넣고,
+#      비밀번호는 .env 의 SRT_PW 에 넣으세요. (login.pw 에 직접 적어도 됩니다)
+#         cp .env.example .env   # 그리고 SRT_PW= 값을 채우기
+#   2) 실행:
+#         python main.py -c config.dongtan-daejeon.yaml
+#
+# ※ 동탄·대전은 SRT 전용/정차역이므로 provider 는 반드시 srt 입니다.
+# ※ 좌석이 잡히면 알림 후 종료됩니다. 표 확정은 SRT 앱/홈페이지에서 직접 결제해야 합니다.
+
+provider: "srt"
+
+login:
+  id: ""                 # ← 본인 SRT 아이디(회원번호/이메일/휴대폰번호) 입력
+  pw: ""                 # 비워두면 .env 의 SRT_PW 사용 (권장)
+
+trip:
+  dep: "동탄"
+  arr: "대전"
+  date: "20261025"       # 내일 (2026-10-25)
+  time: "190000"         # 19:00 이후 열차부터 검색
+  time_limit: "210000"   # 21:00 이전 열차까지 (= 오후 8시 전후)
+
+train:
+  # SRT 는 열차 종류 구분이 없어 type 은 무시됩니다.
+  train_numbers: []      # 특정 열차번호만 노리려면 예: ["341", "343"]
+  seat_option: "GENERAL_FIRST"   # 일반실 우선
+
+passengers:
+  adult: 1               # 어른 1명
+
+booking:
+  retry_interval: 2.0    # 재시도 간격(초)
+  max_retries: 0         # 0 = 좌석 잡힐 때까지 무제한 재시도
+  reserve_first_available: true
+
+notify:
+  telegram:
+    enabled: false       # 텔레그램 알림을 쓰려면 true + .env 토큰 설정
