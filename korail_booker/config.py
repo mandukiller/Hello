@@ -129,8 +129,14 @@ def load_config(path: str | os.PathLike = "config.yaml") -> Config:
     provider = str(raw.get("provider", "korail")).strip().lower()
 
     login_raw = raw.get("login", {}) or {}
-    # id: 신규 키(id) 우선, 구버전 키(korail_id) 호환
-    user_id = login_raw.get("id") or login_raw.get("korail_id") or ""
+    # id: 신규 키(id) → 구버전 키(korail_id) → 환경변수(provider 별)
+    id_env = os.getenv("SRT_ID") if provider == "srt" else os.getenv("KORAIL_ID")
+    user_id = (
+        login_raw.get("id")
+        or login_raw.get("korail_id")
+        or id_env
+        or ""
+    )
     # pw: 신규 키(pw) → 구버전(korail_pw) → 환경변수(provider 별)
     pw_env = os.getenv("SRT_PW") if provider == "srt" else os.getenv("KORAIL_PW")
     user_pw = (
