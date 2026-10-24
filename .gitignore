@@ -1,0 +1,15 @@
+# 민감/개인 설정
+.env
+config.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# 로그
+*.log

@@ -1,0 +1,50 @@
+# 코레일 자동 예매 설정 예시
+# 이 파일을 config.yaml 로 복사한 뒤 값을 채워 사용하세요.
+#   cp config.example.yaml config.yaml
+
+# ── 로그인 정보 ────────────────────────────────────────────────
+# 보안을 위해 비밀번호는 여기 적지 말고 환경변수(.env)로 넣는 것을 권장합니다.
+# korail_id 는 회원번호 / 이메일 / 휴대폰번호 중 하나를 쓸 수 있습니다.
+login:
+  korail_id: "1234567890"      # 회원번호·이메일·휴대폰번호
+  korail_pw: ""                # 비워두면 .env 의 KORAIL_PW 를 사용
+
+# ── 여정 정보 ──────────────────────────────────────────────────
+trip:
+  dep: "서울"                  # 출발역 (한글 역명 그대로)
+  arr: "부산"                  # 도착역
+  date: "20261225"             # 출발일 YYYYMMDD
+  time: "060000"               # 이 시각(HHMMSS) 이후 열차부터 검색
+  # 선택: 아래 시각 이후 열차는 제외 (빈 값이면 제한 없음)
+  time_limit: "120000"         # 예: 정오 이전 열차만 노리려면 120000
+
+# ── 열차 선택 조건 ─────────────────────────────────────────────
+train:
+  # KTX / KTX_SANCHEON / SAEMAEUL / MUGUNGHWA / TONGGUEN / NURIRO /
+  # ITX_SAEMAEUL / ITX_CHEONGCHUN / AIRPORT / ALL  중 선택
+  type: "KTX"
+  # 특정 열차번호만 노리려면 리스트로 지정 (빈 리스트면 조건에 맞는 모든 열차)
+  train_numbers: []            # 예: ["101", "103"]
+  # 좌석 옵션: GENERAL_FIRST(일반실 우선) / GENERAL_ONLY /
+  #            SPECIAL_FIRST(특실 우선) / SPECIAL_ONLY
+  seat_option: "GENERAL_FIRST"
+
+# ── 승객 구성 ──────────────────────────────────────────────────
+passengers:
+  adult: 1                     # 어른
+  child: 0                     # 어린이(만 6~12세)
+  toddler: 0                   # 유아(만 6세 미만)
+  senior: 0                    # 경로(만 65세 이상)
+
+# ── 자동 예매 동작 ─────────────────────────────────────────────
+booking:
+  retry_interval: 2.0          # 재시도 간격(초). 서버 부담을 줄이려 2초 이상 권장
+  max_retries: 0               # 최대 시도 횟수 (0 = 무제한)
+  reserve_first_available: true  # 조건에 맞는 첫 열차가 나오면 바로 예매
+
+# ── 알림 ───────────────────────────────────────────────────────
+notify:
+  telegram:
+    enabled: false
+    bot_token: ""              # 비워두면 .env 의 TELEGRAM_BOT_TOKEN 사용
+    chat_id: ""                # 비워두면 .env 의 TELEGRAM_CHAT_ID 사용
