@@ -4,6 +4,9 @@ six>=1.16.0
 PyCryptodome>=3.19.0
 requests>=2.31.0
 
+# SRT(수서고속철도) API 래퍼 (provider: srt 사용 시)
+SRTrain>=2.6.0
+
 # 설정/알림용
 PyYAML>=6.0
 python-dotenv>=1.0.0

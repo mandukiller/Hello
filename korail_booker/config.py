@@ -14,11 +14,13 @@ try:  # .env 는 선택 사항
 except ImportError:  # pragma: no cover
     load_dotenv = None
 
+VALID_PROVIDERS = ("korail", "srt")
+
 
 @dataclass
 class LoginConfig:
-    korail_id: str
-    korail_pw: str
+    user_id: str
+    user_pw: str
 
 
 @dataclass
@@ -41,12 +43,21 @@ class TrainConfig:
 class PassengerConfig:
     adult: int = 1
     child: int = 0
-    toddler: int = 0
+    toddler: int = 0          # 코레일 전용 (SRT 미지원)
     senior: int = 0
+    disability1to3: int = 0   # SRT 전용 (코레일 미지원)
+    disability4to6: int = 0   # SRT 전용 (코레일 미지원)
 
     @property
     def total(self) -> int:
-        return self.adult + self.child + self.toddler + self.senior
+        return (
+            self.adult
+            + self.child
+            + self.toddler
+            + self.senior
+            + self.disability1to3
+            + self.disability4to6
+        )
 
 
 @dataclass
@@ -70,6 +81,7 @@ class NotifyConfig:
 
 @dataclass
 class Config:
+    provider: str
     login: LoginConfig
     trip: TripConfig
     train: TrainConfig
@@ -78,12 +90,16 @@ class Config:
     notify: NotifyConfig
 
     def validate(self) -> None:
-        if not self.login.korail_id:
-            raise ValueError("login.korail_id 가 비어 있습니다.")
-        if not self.login.korail_pw:
+        if self.provider not in VALID_PROVIDERS:
             raise ValueError(
-                "비밀번호가 없습니다. config.yaml 의 login.korail_pw 또는 "
-                ".env 의 KORAIL_PW 를 설정하세요."
+                f"provider 는 {VALID_PROVIDERS} 중 하나여야 합니다 (현재: {self.provider})."
+            )
+        if not self.login.user_id:
+            raise ValueError("login.id 가 비어 있습니다.")
+        if not self.login.user_pw:
+            raise ValueError(
+                "비밀번호가 없습니다. config.yaml 의 login.pw 또는 "
+                ".env 의 SRT_PW / KORAIL_PW 를 설정하세요."
             )
         if not (self.trip.dep and self.trip.arr and self.trip.date):
             raise ValueError("trip.dep / trip.arr / trip.date 는 필수입니다.")
@@ -110,8 +126,19 @@ def load_config(path: str | os.PathLike = "config.yaml") -> Config:
     with cfg_path.open("r", encoding="utf-8") as f:
         raw = yaml.safe_load(f) or {}
 
+    provider = str(raw.get("provider", "korail")).strip().lower()
+
     login_raw = raw.get("login", {}) or {}
-    korail_pw = login_raw.get("korail_pw") or os.getenv("KORAIL_PW", "")
+    # id: 신규 키(id) 우선, 구버전 키(korail_id) 호환
+    user_id = login_raw.get("id") or login_raw.get("korail_id") or ""
+    # pw: 신규 키(pw) → 구버전(korail_pw) → 환경변수(provider 별)
+    pw_env = os.getenv("SRT_PW") if provider == "srt" else os.getenv("KORAIL_PW")
+    user_pw = (
+        login_raw.get("pw")
+        or login_raw.get("korail_pw")
+        or pw_env
+        or ""
+    )
 
     trip_raw = raw.get("trip", {}) or {}
     train_raw = raw.get("train", {}) or {}
@@ -123,9 +150,10 @@ def load_config(path: str | os.PathLike = "config.yaml") -> Config:
     time_limit = trip_raw.get("time_limit") or None
 
     config = Config(
+        provider=provider,
         login=LoginConfig(
-            korail_id=str(login_raw.get("korail_id", "")).strip(),
-            korail_pw=str(korail_pw).strip(),
+            user_id=str(user_id).strip(),
+            user_pw=str(user_pw).strip(),
         ),
         trip=TripConfig(
             dep=str(trip_raw.get("dep", "")).strip(),
@@ -144,6 +172,8 @@ def load_config(path: str | os.PathLike = "config.yaml") -> Config:
             child=int(psgr_raw.get("child", 0)),
             toddler=int(psgr_raw.get("toddler", 0)),
             senior=int(psgr_raw.get("senior", 0)),
+            disability1to3=int(psgr_raw.get("disability1to3", 0)),
+            disability4to6=int(psgr_raw.get("disability4to6", 0)),
         ),
         booking=BookingConfig(
             retry_interval=float(booking_raw.get("retry_interval", 2.0)),

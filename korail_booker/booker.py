@@ -97,9 +97,13 @@ class KorailAutoBooker:
     def __init__(self, config: Config, notifier: Optional[Notifier] = None):
         self.config = config
         self.notifier = notifier or Notifier(config.notify.telegram)
+        if config.passengers.disability1to3 or config.passengers.disability4to6:
+            logger.warning(
+                "코레일 백엔드는 장애인 승객 구분을 지원하지 않습니다. 해당 인원은 무시됩니다."
+            )
         self.korail = Korail(
-            config.login.korail_id,
-            config.login.korail_pw,
+            config.login.user_id,
+            config.login.user_pw,
             auto_login=False,
         )
         self._train_type = _resolve_train_type(config.train.type)

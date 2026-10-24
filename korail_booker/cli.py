@@ -7,8 +7,18 @@ import logging
 import sys
 
 from .config import load_config
-from .booker import KorailAutoBooker
 from .notifier import Notifier
+
+
+def _make_booker(config, notifier):
+    """provider 설정에 따라 알맞은 백엔드 부커를 생성한다."""
+    if config.provider == "srt":
+        from .srt_booker import SRTAutoBooker
+
+        return SRTAutoBooker(config, notifier=notifier)
+    from .booker import KorailAutoBooker
+
+    return KorailAutoBooker(config, notifier=notifier)
 
 
 def _setup_logging(verbose: bool) -> None:
@@ -43,7 +53,7 @@ def main(argv=None) -> int:
         return 2
 
     notifier = Notifier(config.notify.telegram)
-    booker = KorailAutoBooker(config, notifier=notifier)
+    booker = _make_booker(config, notifier)
 
     try:
         booker.login()
